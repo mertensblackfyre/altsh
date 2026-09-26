@@ -1,6 +1,7 @@
 tests/build
 build
 main
+.cache
 
 include1
 src2
