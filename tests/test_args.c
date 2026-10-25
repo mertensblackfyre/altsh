@@ -193,3 +193,90 @@ static void test_empty_input() {
     token t = args_token_scan(strlen(input), &s);
     assert(t.type == TOKEN_EOF);
 }
+
+
+static void test_escaped_spaces_single_arg() {
+    char input[] = "echo multiple\\ \\ \\ \\ spaces";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_ARGUMENTS);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "multiple    spaces") == 0);
+    free(c2);
+}
+
+static void test_escaped_quotes_literal() {
+    char input[] = "echo \\'\\\"literal quotes\\\"\\'";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_ARGUMENTS);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "'\"literal") == 0);
+    free(c2);
+
+    token t3 = args_token_scan(strlen(input), &s);
+    assert(t3.type == TOKEN_ARGUMENTS);
+    char *c3 = get_token_content(t3);
+    assert(strcmp(c3, "quotes\"'") == 0);
+    free(c3);
+}
+
+static void test_backslash_ignored_before_normal_char() {
+    char input[] = "echo ignore\\_backslash";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_ARGUMENTS);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "ignore_backslash") == 0);
+    free(c2);
+}
+
+static void test_backslash_in_paths() {
+    char input[] = "cat /tmp/\\_ignored_1 /tmp/ignore_\\2 /tmp/just_one_\\\\_3";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "cat") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_ARGUMENTS);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "/tmp/_ignored_1") == 0);
+    free(c2);
+
+    token t3 = args_token_scan(strlen(input), &s);
+    assert(t3.type == TOKEN_ARGUMENTS);
+    char *c3 = get_token_content(t3);
+    assert(strcmp(c3, "/tmp/ignore_2") == 0);
+    free(c3);
+
+    token t4 = args_token_scan(strlen(input), &s);
+    assert(t4.type == TOKEN_ARGUMENTS);
+    char *c4 = get_token_content(t4);
+    assert(strcmp(c4, "/tmp/just_one_\\_3") == 0);
+    free(c4);
+}

@@ -12,17 +12,43 @@ static token handle_commands(int len, scanner *s, token_type type) {
   int index = 0;
   char *str = malloc(len);
 
-  str[index++] = *s->start;
+  // printf("current-> %c\n", *s->current);
+  // printf("start-> %c\n", s->current[-1]);
+
+  if (s->current[-1] == '\\') {
+    str[index++] = *s->current;
+    s->current++;
+  } else {
+    str[index++] = s->current[-1];
+  }
+
   while (*s->current != '\'' && *s->current != ' ' && *s->current != '\t' &&
          *s->current != '\r' && *s->current != '\0') {
+
+    if (*s->current == '\\' && *(s->current + 1) != '\0') {
+      s->current++;
+      str[index++] = *s->current;
+      s->current++;
+      continue;
+    }
+
     str[index++] = *s->current;
     s->current++;
   }
+
   if (*s->current == '\'' && *(s->current + 1) != '\0' &&
       *(s->current + 1) == '\'') {
     s->current += 2;
     while (*s->current != ' ' && *s->current != '\t' && *s->current != '\r' &&
            *s->current != '\0') {
+
+      if (*s->current == '\\' && *(s->current + 1) != '\0') {
+        s->current++;
+        str[index++] = *s->current;
+        s->current++;
+        continue;
+      }
+
       str[index++] = *s->current;
       s->current++;
     }
@@ -47,6 +73,10 @@ static token handle_double_qoutes(int len, scanner *s) {
   char *str = malloc(len);
   while (*s->current != '"' && *s->current != '\0') {
     str[index++] = *s->current;
+    if (*s->current == '\\') {
+      str[index++] = *++s->current;
+      continue;
+    };
     s->current++;
   }
   if (*(s->current + 1) != '\0' && *(s->current + 1) == '"') {
@@ -137,11 +167,12 @@ token args_token_scan(int len, scanner *s) {
   return args_token_make("", s, TOKEN_EOF);
 };
 
-void args_scanner(char *input) {
+char **args_scanner(char *input) {
 
+  char **args = malloc(sizeof(token) * strlen(input));
   if (strlen(input) == 0) {
     fprintf(stderr, "No input provided\n");
-    return;
+    return args;
   };
 
   scanner *s = (scanner *)malloc(10 * sizeof(scanner));
@@ -155,10 +186,17 @@ void args_scanner(char *input) {
   s->current = input;
 
   int pos = -1;
+
   for (int i = 0; i < strlen(input); i++) {
     token token = args_token_scan(strlen(input), s);
+
     if (token.type == TOKEN_EOF)
       break;
 
+    printf("%s\n", token.literal);
+    // args[i] = malloc(token.length);
+    // strncpy(args[i], token.literal, token.length);
   }
+
+  return args;
 }

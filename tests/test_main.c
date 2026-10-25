@@ -12,6 +12,10 @@ int main() {
     test_single_quotes_multiple_args();
     test_single_quote_inside_double_quotes();
     test_empty_input();
+    test_escaped_spaces_single_arg();
+    test_escaped_quotes_literal();
+    test_backslash_ignored_before_normal_char();
+    test_backslash_in_paths();
 
     printf("All tests passed!\n");
     return 0;

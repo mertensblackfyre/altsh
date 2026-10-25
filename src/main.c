@@ -23,6 +23,7 @@ int main(void) {
     };
 
     printf("$ ");
+
     input = utils_get_input();
 
     // if (builtin_check(input)) {
@@ -30,6 +31,7 @@ int main(void) {
     //  };
 
     args_scanner(input);
+
     //utils_execute_program(input);
     free(buffer);
     free(input);
