@@ -19,8 +19,8 @@ static token handle_commands(int len, scanner *s, token_type type) {
     str[index++] = s->current[-1];
   }
 
-  while (*s->current != '\'' && *s->current != ' ' && *s->current != '\t' &&
-         *s->current != '\r' && *s->current != '\0') {
+  while (*s->current != ' ' && *s->current != '\t' && *s->current != '\r' &&
+         *s->current != '\0') {
 
     if (*s->current == '\\' && *(s->current + 1) != '\0') {
       s->current++;
@@ -28,27 +28,23 @@ static token handle_commands(int len, scanner *s, token_type type) {
       s->current++;
       continue;
     }
+    if (*s->current == '\'' && *(s->current + 1) != '\0' &&
+        *(s->current + 1) == '\'') {
+      s->current += 2;
+    }
+
+    if (*s->current == '\'' && *(s->current + 1) != '\0') {
+      s->current++;
+      while (*s->current != '\'' && *s->current != '\0') {
+        str[index++] = *s->current;
+        s->current++;
+      }
+      s->current++;
+      continue;
+    }
 
     str[index++] = *s->current;
     s->current++;
-  }
-
-  if (*s->current == '\'' && *(s->current + 1) != '\0' &&
-      *(s->current + 1) == '\'') {
-    s->current += 2;
-    while (*s->current != ' ' && *s->current != '\t' && *s->current != '\r' &&
-           *s->current != '\0') {
-
-      if (*s->current == '\\' && *(s->current + 1) != '\0') {
-        s->current++;
-        str[index++] = *s->current;
-        s->current++;
-        continue;
-      }
-
-      str[index++] = *s->current;
-      s->current++;
-    }
   }
 
   if (*s->current == '\0') {
@@ -69,11 +65,13 @@ static token handle_double_qoutes(int len, scanner *s) {
   int index = 0;
   char *str = malloc(len);
   while (*s->current != '"' && *s->current != '\0') {
-    str[index++] = *s->current;
+
     if (*s->current == '\\') {
       str[index++] = *++s->current;
       continue;
     };
+
+    str[index++] = *s->current;
     s->current++;
   }
   if (*(s->current + 1) != '\0' && *(s->current + 1) == '"') {
@@ -108,16 +106,13 @@ static token handle_single_qoutes(int len, scanner *s) {
   while (*s->current != '\'' && *s->current != '\0') {
     str[index++] = *s->current;
     s->current++;
-
-
   }
+
   if (*(s->current + 1) != '\0' && *(s->current + 1) == '\'') {
     s->current += 2;
     while (*s->current != '\'' && *s->current != '\0') {
       str[index++] = *s->current;
       s->current++;
-
-
     }
   }
   s->pos++;
@@ -138,7 +133,7 @@ token args_token_make(char *str, scanner *s, token_type type) {
   if (strlen(str) == 0)
     return token;
 
-  token.literal = malloc(strlen(str)+1);
+  token.literal = malloc(strlen(str) * 2);
   strncpy(token.literal, str, token.length);
   token.literal[token.length] = '\0';
   return token;

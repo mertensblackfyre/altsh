@@ -280,3 +280,100 @@ static void test_backslash_in_paths() {
     assert(strcmp(c4, "/tmp/just_one_\\_3") == 0);
     free(c4);
 }
+
+static void test_single_quotes_double_backslash() {
+    char input[] = "echo 'multiple\\\\slashes'";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_SINGLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "multiple\\\\slashes") == 0);
+    free(c2);
+}
+
+static void test_single_quotes_backslash_before_double_quote() {
+    char input[] = "echo 'every\\\"thing_is\\\"literal'";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_SINGLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "every\\\"thing_is\\\"literal") == 0);
+    free(c2);
+}
+
+static void test_single_quotes_in_paths() {
+    char input[] = "cat /tmp/'no slash 1' /tmp/'one slash \\2' /tmp/'two slashes \\3\\'";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "cat") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_ARGUMENTS);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "/tmp/no slash 1") == 0);
+    free(c2);
+
+    token t3 = args_token_scan(strlen(input), &s);
+    assert(t3.type == TOKEN_ARGUMENTS);
+    char *c3 = get_token_content(t3);
+    assert(strcmp(c3, "/tmp/one slash \\2") == 0);
+    free(c3);
+
+    token t4 = args_token_scan(strlen(input), &s);
+    assert(t4.type == TOKEN_ARGUMENTS);
+    char *c4 = get_token_content(t4);
+    assert(strcmp(c4, "/tmp/two slashes \\3\\") == 0);
+    free(c4);
+}
+
+static void test_single_quotes_backslash_n_literal() {
+    char input[] = "echo 'shell\\\\\\nscript'";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_SINGLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "shell\\\\\\nscript") == 0);
+    free(c2);
+}
+
+static void test_single_quotes_backslash_double_quote_example() {
+    char input[] = "echo 'example\\\"test'";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_SINGLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "example\\\"test") == 0);
+    free(c2);
+}
