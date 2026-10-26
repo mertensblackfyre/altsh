@@ -12,9 +12,6 @@ static token handle_commands(int len, scanner *s, token_type type) {
   int index = 0;
   char *str = malloc(len);
 
-  // printf("current-> %c\n", *s->current);
-  // printf("start-> %c\n", s->current[-1]);
-
   if (s->current[-1] == '\\') {
     str[index++] = *s->current;
     s->current++;
@@ -111,12 +108,16 @@ static token handle_single_qoutes(int len, scanner *s) {
   while (*s->current != '\'' && *s->current != '\0') {
     str[index++] = *s->current;
     s->current++;
+
+
   }
   if (*(s->current + 1) != '\0' && *(s->current + 1) == '\'') {
     s->current += 2;
     while (*s->current != '\'' && *s->current != '\0') {
       str[index++] = *s->current;
       s->current++;
+
+
     }
   }
   s->pos++;
@@ -137,7 +138,7 @@ token args_token_make(char *str, scanner *s, token_type type) {
   if (strlen(str) == 0)
     return token;
 
-  token.literal = malloc(strlen(str));
+  token.literal = malloc(strlen(str)+1);
   strncpy(token.literal, str, token.length);
   token.literal[token.length] = '\0';
   return token;
