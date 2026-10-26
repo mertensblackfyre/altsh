@@ -377,3 +377,117 @@ static void test_single_quotes_backslash_double_quote_example() {
     assert(strcmp(c2, "example\\\"test") == 0);
     free(c2);
 }
+
+static void test_double_quotes_single_quotes_and_backslash_n() {
+    char input[] = "echo \"just'one'\\\\n'backslash\"";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_DOUBLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "just'one'\\n'backslash") == 0);
+    free(c2);
+}
+
+static void test_double_quotes_escaped_quote_then_outside() {
+    char input[] = "echo \"inside\\\"literal_quote.\"outside\\\"";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_DOUBLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "inside\"literal_quote.outside\"") == 0);
+    free(c2);
+}
+
+static void test_double_quotes_backslash_escapes_itself() {
+    char input[] = "echo \"A \\\\ escapes itself\"";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_DOUBLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "A \\ escapes itself") == 0);
+    free(c2);
+}
+
+static void test_double_quotes_escaped_double_quote() {
+    char input[] = "echo \"A \\\" inside double quotes\"";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_DOUBLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "A \" inside double quotes") == 0);
+    free(c2);
+}
+
+static void test_double_quotes_in_paths() {
+    char input[] = "cat /tmp/\"number 1\" /tmp/\"doublequote \\\" 2\" /tmp/\"backslash \\\\ 3\"";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "cat") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_ARGUMENTS);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "/tmp/number 1") == 0);
+    free(c2);
+
+    token t3 = args_token_scan(strlen(input), &s);
+    assert(t3.type == TOKEN_ARGUMENTS);
+    char *c3 = get_token_content(t3);
+    assert(strcmp(c3, "/tmp/doublequote \" 2") == 0);
+    free(c3);
+
+    token t4 = args_token_scan(strlen(input), &s);
+    assert(t4.type == TOKEN_ARGUMENTS);
+    char *c4 = get_token_content(t4);
+    assert(strcmp(c4, "/tmp/backslash \\ 3") == 0);
+    free(c4);
+}
+
+static void test_double_quotes_backslash_kept_before_normal_char() {
+    char input[] = "echo \"a\\qb\\nc\"";
+    scanner s = make_scanner(input);
+
+    token t1 = args_token_scan(strlen(input), &s);
+    assert(t1.type == TOKEN_COMMAND);
+    char *c1 = get_token_content(t1);
+    assert(strcmp(c1, "echo") == 0);
+    free(c1);
+
+    token t2 = args_token_scan(strlen(input), &s);
+    assert(t2.type == TOKEN_DOUBLE_QUOTE);
+    char *c2 = get_token_content(t2);
+    assert(strcmp(c2, "a\\qb\\nc") == 0);
+    free(c2);
+}

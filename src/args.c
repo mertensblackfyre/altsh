@@ -7,10 +7,20 @@
 #include "../include/args.h"
 #include "../include/helper.h"
 
+static token handle_single_qoutes(int len, scanner *s);
+static token handle_double_qoutes(int len, scanner *s);
+
 static token handle_commands(int len, scanner *s, token_type type) {
 
   int index = 0;
   char *str = malloc(len);
+
+  if (s->current[-1] == '\'') {
+    return handle_single_qoutes(len, s);
+  }
+  if (s->current[-1] == '"') {
+    return handle_double_qoutes(len, s);
+  }
 
   if (s->current[-1] == '\\') {
     str[index++] = *s->current;
@@ -28,14 +38,40 @@ static token handle_commands(int len, scanner *s, token_type type) {
       s->current++;
       continue;
     }
+
+    if (*s->current == '"' && *(s->current + 1) != '\0' &&
+        *(s->current + 1) == '"') {
+      s->current += 2;
+    }
+
+    if (*s->current == '"' && *(s->current + 1) != '\0') {
+      s->current++;
+      while (*s->current != '"' && *s->current != '\0') {
+        char next = s->current[1];
+        if (*s->current == '\\' &&
+            (next == '"' || next == '\\' || next == '$' || next == '`' ||
+             next == '\n')) {
+
+          s->current++;
+          str[index++] = *s->current;
+          s->current++;
+          continue;
+        };
+        str[index++] = *s->current;
+        s->current++;
+      }
+      s->current++;
+      continue;
+    }
+
     if (*s->current == '\'' && *(s->current + 1) != '\0' &&
         *(s->current + 1) == '\'') {
       s->current += 2;
     }
-
     if (*s->current == '\'' && *(s->current + 1) != '\0') {
       s->current++;
       while (*s->current != '\'' && *s->current != '\0') {
+
         str[index++] = *s->current;
         s->current++;
       }
@@ -65,15 +101,20 @@ static token handle_double_qoutes(int len, scanner *s) {
   int index = 0;
   char *str = malloc(len);
   while (*s->current != '"' && *s->current != '\0') {
+    char next = s->current[1];
+    if (*s->current == '\\' && (next == '"' || next == '\\' || next == '$' ||
+                                next == '`' || next == '\n')) {
 
-    if (*s->current == '\\') {
-      str[index++] = *++s->current;
+      s->current++;
+      str[index++] = *s->current;
+      s->current++;
       continue;
     };
 
     str[index++] = *s->current;
     s->current++;
   }
+
   if (*(s->current + 1) != '\0' && *(s->current + 1) == '"') {
     s->current += 2;
     while (*s->current != '"' && *s->current != '\0') {
@@ -85,6 +126,15 @@ static token handle_double_qoutes(int len, scanner *s) {
   if (*(s->current + 1) != '\0' && isspace(*(s->current + 1)) == 0) {
     s->current++;
     while (*s->current != '"' && *s->current != '\0') {
+      char next = s->current[1];
+      if (*s->current == '\\' && (next == '"' || next == '\\' || next == '$' ||
+                                  next == '`' || next == '\n')) {
+
+        s->current++;
+        str[index++] = *s->current;
+        s->current++;
+        continue;
+      }
       str[index++] = *s->current;
       s->current++;
     }
@@ -104,6 +154,13 @@ static token handle_single_qoutes(int len, scanner *s) {
   char *str = malloc(len);
 
   while (*s->current != '\'' && *s->current != '\0') {
+    if (*s->current == '"') {
+      while (*s->current != '"' && *s->current != '\0') {
+        str[index++] = *s->current;
+        s->current++;
+      }
+    }
+
     str[index++] = *s->current;
     s->current++;
   }
@@ -115,6 +172,7 @@ static token handle_single_qoutes(int len, scanner *s) {
       s->current++;
     }
   }
+
   s->pos++;
   s->current++;
 
