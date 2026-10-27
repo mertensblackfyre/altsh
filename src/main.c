@@ -1,11 +1,12 @@
-#include "../include/utils.h"
-
-
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+#include "../include/utils.h"
+
+#include "../include/builtin.h"
 
 #define SIZE 1024
 
@@ -26,13 +27,13 @@ int main(void) {
 
     input = utils_get_input();
 
-    // if (builtin_check(input)) {
-    //    continue;
-    //  };
+    if (builtin_check(input)) {
+      continue;
+    };
 
-   // args_scanner(input);
+    // args_scanner(input);
 
-    //utils_execute_program(input);
+    // utils_execute_program(input);
     free(buffer);
     free(input);
   } while (true);

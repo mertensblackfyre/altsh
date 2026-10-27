@@ -26,7 +26,14 @@ typedef struct {
   int pos;
 } token;
 
-char **parser_scanner(char *input);
+
+typedef struct {
+    char **argv;
+    char *cmd;
+    int argc;
+} parsed_input;
+
+parsed_input *parser_scanner(char *input);
 token parser_scan_token(int len,scanner *s);
 
 token parser_create_token(char *str, scanner *s, token_type type);

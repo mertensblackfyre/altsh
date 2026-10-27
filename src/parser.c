@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/parser.h"
 #include "../include/helper.h"
+#include "../include/parser.h"
 
 static token handle_single_qoutes(int len, scanner *s);
 static token handle_double_qoutes(int len, scanner *s);
@@ -221,12 +221,15 @@ token parser_scan_token(int len, scanner *s) {
   return parser_create_token("", s, TOKEN_EOF);
 };
 
-char **parser_scanner(char *input) {
+parsed_input *parser_scanner(char *input) {
 
-  char **args = malloc(sizeof(token) * strlen(input));
+  parsed_input *p_input = malloc(sizeof(parsed_input) * strlen(input) + 1);
+  p_input->argv = malloc(sizeof(token) * strlen(input) + 1);
+  p_input->argc = 0;
+
   if (strlen(input) == 0) {
     fprintf(stderr, "No input provided\n");
-    return args;
+    return p_input;
   };
 
   scanner *s = (scanner *)malloc(10 * sizeof(scanner));
@@ -247,10 +250,15 @@ char **parser_scanner(char *input) {
     if (token.type == TOKEN_EOF)
       break;
 
-    printf("%s\n", token.literal);
-    // args[i] = malloc(token.length);
-    // strncpy(args[i], token.literal, token.length);
+    if (token.type == TOKEN_COMMAND) {
+      p_input->cmd = malloc(token.length);
+      strncpy(p_input->cmd, token.literal, token.length);
+    }
+
+    p_input->argv[i] = malloc(token.length);
+    strncpy(p_input->argv[i], token.literal, token.length);
+    p_input->argc++;
   }
 
-  return args;
+  return p_input;
 }

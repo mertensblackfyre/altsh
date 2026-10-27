@@ -7,57 +7,74 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "../include/builtin.h"
 #include "../include/helper.h"
+#include "../include/parser.h"
 #include "../include/utils.h"
 
 #define SIZE 1024
 
-/*
 const char *builtin[] = {"echo", "type", "exit", "pwd", "cd"};
 
 bool builtin_check(char *input) {
 
   size_t size = strlen(input);
+  parsed_input *p_input = malloc(sizeof(parsed_input) * size);
+  if (p_input == NULL) {
+    perror("failed allocation: builtin_check()");
+    return false;
+  }
 
-  args_t *args = malloc(sizeof(args_t));
-  args = args_parse_arguments(input);
+  p_input = parser_scanner(input);
+  if (p_input == NULL) {
+    perror("failed init: builtin_check()");
+    return false;
+  }
 
-  if (strncmp("exit", args->argv[0], 4) == 0) {
-    if (args->argc == 0) {
+  char *cmd = p_input->cmd;
+
+  if (cmd == NULL) {
+    perror("first value is empty: builtin_check()");
+    return false;
+  }
+
+  if (strncmp("exit", cmd, 4) == 0) {
+    if (strlen(cmd) == 0) {
       builtin_exit(1);
       return true;
     }
-    int n = atoi((char *)args->argv);
+
+    int n = atoi((char *)p_input->argv[1]);
     builtin_exit(n);
     return true;
   };
 
-  if (strncmp("echo", args->argv[0], 4) == 0) {
-    builtin_echo(args);
+  if (strncmp("echo", cmd, 4) == 0) {
+    builtin_echo(p_input);
     return true;
   };
-  if (strncmp("pwd", args->argv[0], 3) == 0) {
+
+  if (strncmp("pwd", cmd, 3) == 0) {
     builtin_pwd();
     return true;
   };
 
-  if (strncmp("cd", args->argv[0], 2) == 0) {
-    builtin_cd(args);
+  if (strncmp("cd", cmd, 2) == 0) {
+    builtin_cd(p_input);
     return true;
   };
-
-  if (strncmp("type", args->argv[0], 4) == 0) {
-    if (builtin_type(args->argv[1]))
-      printf("%s is a shell builtin\n", args->argv[1]);
+  if (strncmp("type", cmd, 4) == 0) {
+    if (builtin_type(p_input->argv[1]))
+      printf("%s is a shell builtin\n", p_input->argv[1]);
     else
-      utils_get_path(args->argv[1]);
+      utils_get_path(p_input->argv[1]);
     return true;
   };
 
   return false;
 };
 
-void builtin_cd(args_t *args) {
+void builtin_cd(parsed_input *args) {
 
   if (args->argc == 1) {
     const char *env_variable = "HOME";
@@ -109,7 +126,6 @@ void builtin_cd(args_t *args) {
   }
   return;
 };
-
 void builtin_pwd() {
   char *buffer = malloc(sizeof(char *) * SIZE);
   if (getcwd(buffer, SIZE) == NULL)
@@ -121,13 +137,13 @@ void builtin_exit(int status) {
   exit(1);
   return;
 }
-void builtin_echo(args_t *data) {
-  for (size_t i = 1; i < data->argc; ++i) {
+void builtin_echo(parsed_input *data) {
+  for (size_t i = 1; i < data->argc; ++i)
     printf("%s ", data->argv[i]);
-  };
 
   printf("\n");
 };
+
 bool builtin_type(char *arg) {
   size_t size = sizeof(builtin) / sizeof(builtin[0]);
 
@@ -135,7 +151,7 @@ bool builtin_type(char *arg) {
     size_t arg_size = sizeof(&arg) / sizeof(arg[0]);
     size_t builtin_size = sizeof(&builtin[i]) / sizeof(builtin[i][0]);
     if (arg_size == builtin_size) {
-      if (strncmp(helper_trim_space(arg), builtin[i], arg_size) == 0) {
+      if (strncmp(helper_strtrim(arg), builtin[i], arg_size) == 0) {
         return true;
       };
     }
@@ -143,5 +159,3 @@ bool builtin_type(char *arg) {
 
   return false;
 };
-
-*/
