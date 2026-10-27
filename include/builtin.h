@@ -1,7 +1,6 @@
 #ifndef BUILTIN_H
 #define BUILTIN_H
 
-#include "args.h"
 #include <stdbool.h>
 
 extern const char *builtin[];

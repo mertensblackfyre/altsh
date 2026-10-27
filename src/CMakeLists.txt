@@ -1,10 +1,10 @@
-add_library(coralis_lib
+add_library(altsh_lib
     builtin.c
     helper.c
     utils.c
-    args.c
+    parser.c
 )
 
-add_executable(coralis main.c)
+add_executable(altsh main.c)
 
-target_link_libraries(coralis coralis_lib)
+target_link_libraries(altsh altsh_lib)

@@ -1,9 +1,7 @@
-#include "../include/args.h"
+#include "../include/parser.h"
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-
-
 
 char *helper_strtrim(char *str) {
 

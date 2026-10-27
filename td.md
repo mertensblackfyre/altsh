@@ -1,7 +1,0 @@
-- [X] Handle Invalid commands
-- [X] REPL
-- [X] Implement exit, echo and type
-- [X] Locate executable
-- [X] Run a Program
-- [X] pwd builtin
-- [X] cd builtin

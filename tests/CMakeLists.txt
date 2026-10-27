@@ -1,8 +1,8 @@
 add_executable(test_args
-    test_args.c
+    test_parser.c
     test_main.c
 )
 
-target_link_libraries(test_args coralis_lib)
+target_link_libraries(test_args altsh_lib)
 
-add_test(NAME args_scanner_tests COMMAND test_args)
+add_test(NAME parser_scanner_tests COMMAND test_parser)

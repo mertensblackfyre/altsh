@@ -1,7 +1,7 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "./args.h"
+#include "./parser.h"
 
 char *utils_get_input();
 void utils_get_path(char *cmd);

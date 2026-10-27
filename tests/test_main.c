@@ -1,4 +1,4 @@
-#include "../tests/test_args.c"
+#include "../tests/test_parser.c"
 #include <stdio.h>
 
 int main() {

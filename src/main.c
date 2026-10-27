@@ -30,7 +30,7 @@ int main(void) {
     //    continue;
     //  };
 
-    args_scanner(input);
+   // args_scanner(input);
 
     //utils_execute_program(input);
     free(buffer);

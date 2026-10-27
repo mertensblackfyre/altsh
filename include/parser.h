@@ -1,5 +1,5 @@
-#ifndef ARGS_H
-#define ARGS_H
+#ifndef PARSER_H
+#define PARSER_H
 
 #include <stdbool.h>
 
@@ -26,8 +26,8 @@ typedef struct {
   int pos;
 } token;
 
-char **args_scanner(char *input);
-token args_token_scan(int len,scanner *s);
+char **parser_scanner(char *input);
+token parser_scan_token(int len,scanner *s);
 
-token args_token_make(char *str, scanner *s, token_type type);
+token parser_create_token(char *str, scanner *s, token_type type);
 #endif

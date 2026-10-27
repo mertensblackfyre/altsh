@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../include/args.h"
+#include "../include/parser.h"
 #include "../include/helper.h"
 
 static token handle_single_qoutes(int len, scanner *s);
@@ -86,14 +86,14 @@ static token handle_commands(int len, scanner *s, token_type type) {
   if (*s->current == '\0') {
     str[index++] = '\0';
     s->pos++;
-    return args_token_make(str, s, type);
+    return parser_create_token(str, s, type);
   }
 
   s->pos++;
   s->current++;
   str[index++] = '\0';
   helper_skip_whitespace(s);
-  return args_token_make(str, s, type);
+  return parser_create_token(str, s, type);
 };
 
 static token handle_double_qoutes(int len, scanner *s) {
@@ -145,7 +145,7 @@ static token handle_double_qoutes(int len, scanner *s) {
 
   str[index++] = '\0';
   helper_skip_whitespace(s);
-  return args_token_make(str, s, TOKEN_DOUBLE_QUOTE);
+  return parser_create_token(str, s, TOKEN_DOUBLE_QUOTE);
 }
 
 static token handle_single_qoutes(int len, scanner *s) {
@@ -178,10 +178,10 @@ static token handle_single_qoutes(int len, scanner *s) {
 
   str[index++] = '\0';
   helper_skip_whitespace(s);
-  return args_token_make(str, s, TOKEN_SINGLE_QUOTE);
+  return parser_create_token(str, s, TOKEN_SINGLE_QUOTE);
 }
 
-token args_token_make(char *str, scanner *s, token_type type) {
+token parser_create_token(char *str, scanner *s, token_type type) {
   token token;
   token.type = type;
   token.start = s->start;
@@ -197,11 +197,11 @@ token args_token_make(char *str, scanner *s, token_type type) {
   return token;
 };
 
-token args_token_scan(int len, scanner *s) {
+token parser_scan_token(int len, scanner *s) {
   s->start = s->current;
 
   if (*s->current == '\0')
-    return args_token_make("", s, TOKEN_EOF);
+    return parser_create_token("", s, TOKEN_EOF);
 
   s->current++;
   char c = s->current[-1];
@@ -218,10 +218,10 @@ token args_token_scan(int len, scanner *s) {
   default:
     return handle_commands(len, s, TOKEN_ARGUMENTS);
   };
-  return args_token_make("", s, TOKEN_EOF);
+  return parser_create_token("", s, TOKEN_EOF);
 };
 
-char **args_scanner(char *input) {
+char **parser_scanner(char *input) {
 
   char **args = malloc(sizeof(token) * strlen(input));
   if (strlen(input) == 0) {
@@ -242,7 +242,7 @@ char **args_scanner(char *input) {
   int pos = -1;
 
   for (int i = 0; i < strlen(input); i++) {
-    token token = args_token_scan(strlen(input), s);
+    token token = parser_scan_token(strlen(input), s);
 
     if (token.type == TOKEN_EOF)
       break;

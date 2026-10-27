@@ -2,7 +2,7 @@
 #define HELPER_H
 
 
-#include "../include/args.h"
+#include "../include/parser.h"
 
 int helper_count_substrings(char *s);
 char *helper_backtrack_path(char *s, int count);
