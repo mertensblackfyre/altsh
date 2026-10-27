@@ -30,14 +30,11 @@ int main(void) {
     if (builtin_check(input)) {
       continue;
     };
+    utils_execute_program(input);
 
-    // args_scanner(input);
-
-    // utils_execute_program(input);
     free(buffer);
     free(input);
   } while (true);
 
-  // args_parse_arguments(input);
   return EXIT_SUCCESS;
 };

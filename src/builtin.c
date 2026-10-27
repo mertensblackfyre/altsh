@@ -71,6 +71,8 @@ bool builtin_check(char *input) {
     return true;
   };
 
+  free(p_input);
+
   return false;
 };
 
@@ -91,26 +93,11 @@ void builtin_cd(parsed_input *args) {
 
   getcwd(buffer, SIZE);
 
-  if (strstr(path, "../") != NULL) {
-    int x = helper_count_substrings(path);
-    char *tmp = path;
-    path = helper_backtrack_path(buffer, x);
-    strncat(path, tmp, strlen(tmp));
-  };
-
   if (path[0] == '~') {
     const char *env_variable = "HOME";
     char *value = getenv(env_variable);
     path = value;
   };
-
-  if (path[0] == '.') {
-    for (int i = 1; i < strlen(path); ++i)
-      new_path[i - 1] += path[i];
-
-    strcat(buffer, new_path);
-    path = buffer;
-  }
 
   int err = chdir(path);
 
@@ -124,6 +111,8 @@ void builtin_cd(parsed_input *args) {
     if (errno == ENOTDIR)
       fprintf(stderr, "Error: path is not a directory\n");
   }
+  free(buffer);
+  free(new_path);
   return;
 };
 void builtin_pwd() {
