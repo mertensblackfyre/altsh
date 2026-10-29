@@ -228,7 +228,6 @@ parsed_input *parser_scanner(char *input) {
   p_input->argc = 0;
 
   if (strlen(input) == 0) {
-    fprintf(stderr, "No input provided\n");
     return p_input;
   };
 
@@ -253,6 +252,12 @@ parsed_input *parser_scanner(char *input) {
     if (token.type == TOKEN_COMMAND) {
       p_input->cmd = malloc(token.length);
       strncpy(p_input->cmd, token.literal, token.length);
+    }
+
+    if (token.literal != NULL && strcmp(token.literal, ">") == 0) {
+        p_input->has_operator = true;
+    }else{
+        p_input->has_operator = false;
     }
 
     p_input->argv[i] = malloc(token.length);

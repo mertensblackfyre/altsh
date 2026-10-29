@@ -26,11 +26,14 @@ typedef struct {
   int pos;
 } token;
 
-
+typedef struct{
+    
+} _operator;
 typedef struct {
     char **argv;
     char *cmd;
     int argc;
+    bool has_operator;
 } parsed_input;
 
 parsed_input *parser_scanner(char *input);

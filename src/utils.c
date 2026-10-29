@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "../include/utils.h"
+#include "../include/helper.h"
 
 #define BUFFER_SIZE 10240
 
@@ -21,29 +22,32 @@ char *utils_get_input() {
 void utils_get_path(char *cmd) {
   int fd[2];
   int fd_pipe = pipe(fd);
-
   char buffer[BUFFER_SIZE];
   char path[256] = "/usr/bin/";
   strcat(path, cmd);
 
   pid_t cpid = fork();
+  close(fd[1]);
 
   if (cpid == 0) {
     dup2(fd[1], STDOUT_FILENO);
-    char *args[] = {"which", cmd, NULL};
-    execvp("which", args);
-    perror("execvp");
-    exit(1);
-  } else {
-    int status;
-    waitpid(cpid, &status, 0);
-    size_t size = read(fd[0], buffer, BUFFER_SIZE);
-    buffer[size - 1] = '\0';
-
     close(fd[0]);
     close(fd[1]);
-
-    if (size != 0) {
+    char *args[] = {"which", cmd, NULL};
+    execvp("which", args);
+  } else {
+    int status = 0;
+    size_t p = 0;
+    ssize_t _size;
+    while ((_size = read(fd[0], buffer + p, BUFFER_SIZE - 1 - p)) != 0) {
+      p += _size;
+      if (p >= BUFFER_SIZE - 1)
+        break;
+    }
+    buffer[p] = '\0';
+    close(fd[0]);
+    waitpid(cpid, &status, 0);
+    if (_size != 0) {
       printf("%s is in %s\n", cmd, buffer);
       return;
     }
@@ -75,32 +79,41 @@ void utils_execute_program(char *input) {
 
   char buffer[BUFFER_SIZE];
 
-  // if (args->has_operator) {
-  // utils_redirect_stdout(buffer, args);
-  // return;
-  // }
-
   int fd[2];
 
   int fd_pipe = pipe(fd);
   pid_t cpid = fork();
+  close(fd[1]);
 
   if (cpid == -1) {
     perror("fork()");
     return;
   };
 
+
   if (cpid == 0) {
     dup2(fd[1], STDOUT_FILENO);
+    close(fd[1]);
+    close(fd[0]);
     execvp(cmd, p_input->argv);
     printf("%s: command not found\n", cmd);
   } else {
+    size_t p = 0;
+    ssize_t _size;
+    while ((_size = read(fd[0], buffer + p, BUFFER_SIZE - 1 - p)) != 0) {
+      p += _size;
+      if (p >= BUFFER_SIZE - 1)
+        break;
+    }
+    buffer[p] = '\0';
+    close(fd[0]);
     int status;
     waitpid(cpid, &status, 0);
-    size_t size = read(fd[0], buffer, BUFFER_SIZE);
-    buffer[size] = '\0';
-    close(fd[0]);
-    close(fd[1]);
+
+    if (p_input->has_operator) {
+        helper_write(p_input->argv[p_input->argc - 1],buffer, "w" );
+        return;
+    }
     printf("%s", buffer);
   };
 };

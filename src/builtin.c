@@ -20,6 +20,7 @@ bool builtin_check(char *input) {
 
   size_t size = strlen(input);
   parsed_input *p_input = malloc(sizeof(parsed_input) * size);
+
   if (p_input == NULL) {
     perror("failed allocation: builtin_check()");
     return false;
@@ -27,18 +28,16 @@ bool builtin_check(char *input) {
 
   p_input = parser_scanner(input);
   if (p_input == NULL) {
-    perror("failed init: builtin_check()");
     return false;
   }
 
   char *cmd = p_input->cmd;
 
   if (cmd == NULL) {
-    perror("first value is empty: builtin_check()");
     return false;
   }
 
-  if (strncmp("exit", cmd, 4) == 0) {
+  if (strcmp("exit", cmd) == 0) {
     if (strlen(cmd) == 0) {
       builtin_exit(1);
       return true;
@@ -49,21 +48,23 @@ bool builtin_check(char *input) {
     return true;
   };
 
-  if (strncmp("echo", cmd, 4) == 0) {
+  if (strcmp("echo", cmd) == 0) {
     builtin_echo(p_input);
     return true;
   };
 
-  if (strncmp("pwd", cmd, 3) == 0) {
+  if (strcmp("pwd", cmd) == 0) {
+    printf("%s\n", cmd);
     builtin_pwd();
     return true;
-  };
+  }
 
-  if (strncmp("cd", cmd, 2) == 0) {
+  if (strcmp("cd", cmd) == 0) {
     builtin_cd(p_input);
     return true;
   };
-  if (strncmp("type", cmd, 4) == 0) {
+
+  if (strcmp("type", cmd) == 0) {
     if (builtin_type(p_input->argv[1]))
       printf("%s is a shell builtin\n", p_input->argv[1]);
     else
@@ -127,9 +128,16 @@ void builtin_exit(int status) {
   return;
 }
 void builtin_echo(parsed_input *data) {
-  for (size_t i = 1; i < data->argc; ++i)
+  for (size_t i = 1; i < data->argc; ++i) {
+    if (data->has_operator) {
+        printf("here");
+      while (i < data->argc - 2 && data->argv[i] != (char *)'>') {
+        helper_write(data->argv[data->argc - 1], data->argv[++i], "w");
+      }
+      return;
+    }
     printf("%s ", data->argv[i]);
-
+  }
   printf("\n");
 };
 

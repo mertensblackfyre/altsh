@@ -30,6 +30,7 @@ int main(void) {
     if (builtin_check(input)) {
       continue;
     };
+
     utils_execute_program(input);
 
     free(buffer);
