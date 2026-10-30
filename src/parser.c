@@ -226,6 +226,12 @@ parsed_input *parser_scanner(char *input) {
   parsed_input *p_input = malloc(sizeof(parsed_input) * strlen(input) + 1);
   p_input->argv = malloc(sizeof(token) * strlen(input) + 1);
   p_input->argc = 0;
+  p_input->has_operator = false;
+
+  if (p_input == NULL || p_input->argv == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    return NULL;
+  }
 
   if (strlen(input) == 0) {
     return p_input;
@@ -235,7 +241,8 @@ parsed_input *parser_scanner(char *input) {
 
   if (s == NULL) {
     fprintf(stderr, "Memory allocation failed\n");
-    exit(1);
+
+    return NULL;
   }
 
   s->start = input;
@@ -250,20 +257,32 @@ parsed_input *parser_scanner(char *input) {
       break;
 
     if (token.type == TOKEN_COMMAND) {
-      p_input->cmd = malloc(token.length);
+      p_input->cmd = malloc((sizeof(char *)) * token.length);
+      if (p_input->cmd == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return NULL;
+      }
       strncpy(p_input->cmd, token.literal, token.length);
+      p_input->cmd[token.length] = '\0';
+
     }
 
     if (token.literal != NULL && strcmp(token.literal, ">") == 0) {
-        p_input->has_operator = true;
-    }else{
-        p_input->has_operator = false;
+      p_input->has_operator = true;
     }
 
-    p_input->argv[i] = malloc(token.length);
+    p_input->argv[i] = malloc((sizeof(char *)) * token.length);
+    if (p_input->argv[i] == NULL) {
+      fprintf(stderr, "Memory allocation failed\n");
+      return NULL;
+    }
+
     strncpy(p_input->argv[i], token.literal, token.length);
     p_input->argc++;
   }
+
+ // printf("%d\n",p_input->argc);
+
 
   return p_input;
 }

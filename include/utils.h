@@ -9,6 +9,7 @@ char *utils_get_command(char *input);
 void utils_execute_command(char *cmd);
 void utils_execute(char *string);
 void utils_execute_program(char *cmd);
+//void utils_redirect()
 void utils_append_file(const char *filename, const bool append,
                        const bool overwrite);
 

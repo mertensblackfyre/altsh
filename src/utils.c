@@ -7,8 +7,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#include "../include/utils.h"
 #include "../include/helper.h"
+#include "../include/utils.h"
 
 #define BUFFER_SIZE 10240
 
@@ -61,22 +61,14 @@ void utils_get_path(char *cmd) {
 void utils_execute_program(char *input) {
 
   size_t size = strlen(input);
-  parsed_input *p_input = malloc(sizeof(parsed_input) * size);
+  parsed_input *p_input = parser_scanner(input);
 
-  if (p_input == NULL) {
-    perror("failed allocation: builtin_check()");
+  if (p_input == NULL || p_input->cmd == NULL) {
+    perror("parser_scanner()");
     return;
-  }
-
-  p_input = parser_scanner(input);
-
-  if (p_input == NULL) {
-    perror("failed init: builtin_check()");
-    return;
-  }
+  };
 
   char *cmd = p_input->cmd;
-
   char buffer[BUFFER_SIZE];
 
   int fd[2];
@@ -89,7 +81,6 @@ void utils_execute_program(char *input) {
     perror("fork()");
     return;
   };
-
 
   if (cpid == 0) {
     dup2(fd[1], STDOUT_FILENO);
@@ -110,10 +101,8 @@ void utils_execute_program(char *input) {
     int status;
     waitpid(cpid, &status, 0);
 
-    if (p_input->has_operator) {
-        helper_write(p_input->argv[p_input->argc - 1],buffer, "w" );
-        return;
-    }
     printf("%s", buffer);
   };
+
+  free(p_input);
 };

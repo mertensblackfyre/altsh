@@ -26,18 +26,22 @@ typedef struct {
   int pos;
 } token;
 
-typedef struct{
-    
-} _operator;
 typedef struct {
-    char **argv;
-    char *cmd;
-    int argc;
-    bool has_operator;
+  char *file_name;
+  char *op;
+
+} _operator;
+
+typedef struct {
+  char **argv;
+  char *cmd;
+  int argc;
+  bool has_operator;
+ // _operator op;
 } parsed_input;
 
 parsed_input *parser_scanner(char *input);
-token parser_scan_token(int len,scanner *s);
+token parser_scan_token(int len, scanner *s);
 
 token parser_create_token(char *str, scanner *s, token_type type);
 #endif

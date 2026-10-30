@@ -19,14 +19,9 @@ const char *builtin[] = {"echo", "type", "exit", "pwd", "cd"};
 bool builtin_check(char *input) {
 
   size_t size = strlen(input);
-  parsed_input *p_input = malloc(sizeof(parsed_input) * size);
+  parsed_input *p_input = parser_scanner(input);
+  ;
 
-  if (p_input == NULL) {
-    perror("failed allocation: builtin_check()");
-    return false;
-  }
-
-  p_input = parser_scanner(input);
   if (p_input == NULL) {
     return false;
   }
@@ -40,27 +35,33 @@ bool builtin_check(char *input) {
   if (strcmp("exit", cmd) == 0) {
     if (strlen(cmd) == 0) {
       builtin_exit(1);
+      free(p_input);
       return true;
     }
 
     int n = atoi((char *)p_input->argv[1]);
     builtin_exit(n);
+
+    free(p_input);
     return true;
   };
 
   if (strcmp("echo", cmd) == 0) {
     builtin_echo(p_input);
+    free(p_input);
     return true;
   };
 
   if (strcmp("pwd", cmd) == 0) {
     printf("%s\n", cmd);
     builtin_pwd();
+    free(p_input);
     return true;
   }
 
   if (strcmp("cd", cmd) == 0) {
     builtin_cd(p_input);
+    free(p_input);
     return true;
   };
 
@@ -69,10 +70,10 @@ bool builtin_check(char *input) {
       printf("%s is a shell builtin\n", p_input->argv[1]);
     else
       utils_get_path(p_input->argv[1]);
+
+    free(p_input);
     return true;
   };
-
-  free(p_input);
 
   return false;
 };
@@ -128,16 +129,18 @@ void builtin_exit(int status) {
   return;
 }
 void builtin_echo(parsed_input *data) {
+  printf("%s\n", data->argv[data->argc - 1]);
   for (size_t i = 1; i < data->argc; ++i) {
     if (data->has_operator) {
-        printf("here");
-      while (i < data->argc - 2 && data->argv[i] != (char *)'>') {
-        helper_write(data->argv[data->argc - 1], data->argv[++i], "w");
-      }
+      while (strcmp(data->argv[i], ">") != 0)
+        helper_write(data->argv[data->argc - 1], data->argv[i++], "w");
+
+      helper_write(data->argv[data->argc - 1], "\n", "a");
       return;
     }
     printf("%s ", data->argv[i]);
   }
+
   printf("\n");
 };
 
