@@ -10,7 +10,7 @@ bool builtin_check(char *input);
 bool builtin_type(char *arg);
 void builtin_exit(int status);
 void builtin_echo(parsed_input *data);
-void builtin_pwd();
+char *builtin_pwd();
 void builtin_cd(parsed_input *args);
 
 #endif

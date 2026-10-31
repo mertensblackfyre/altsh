@@ -63,12 +63,12 @@ int helper_count_substrings(char *s) {
 
 void helper_write(char *file_name, char *content, char *mode) {
   FILE *fp = fopen(file_name, mode);
+
   if (fp == NULL) {
     fprintf(stderr, "error opening file");
     return;
   }
-  //printf("%s\n",file_name);
-  fprintf(fp, "%s", content);
 
+  fprintf(fp, "%s", content);
   fclose(fp);
 }

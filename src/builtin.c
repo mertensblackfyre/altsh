@@ -41,7 +41,6 @@ bool builtin_check(char *input) {
 
     int n = atoi((char *)p_input->argv[1]);
     builtin_exit(n);
-
     free(p_input);
     return true;
   };
@@ -53,9 +52,14 @@ bool builtin_check(char *input) {
   };
 
   if (strcmp("pwd", cmd) == 0) {
-    printf("%s\n", cmd);
-    builtin_pwd();
+    char *buffer = builtin_pwd();
+    if (p_input->has_operator)
+      helper_write(p_input->op.file_name, buffer, "w");
+    else
+      printf("%s\n", buffer);
+
     free(p_input);
+    free(buffer);
     return true;
   }
 
@@ -69,7 +73,7 @@ bool builtin_check(char *input) {
     if (builtin_type(p_input->argv[1]))
       printf("%s is a shell builtin\n", p_input->argv[1]);
     else
-      utils_get_path(p_input->argv[1]);
+      utils_get_path(p_input);
 
     free(p_input);
     return true;
@@ -117,31 +121,29 @@ void builtin_cd(parsed_input *args) {
   free(new_path);
   return;
 };
-void builtin_pwd() {
+char *builtin_pwd() {
   char *buffer = malloc(sizeof(char *) * SIZE);
   if (getcwd(buffer, SIZE) == NULL)
     printf("error: Could not get path\n");
 
-  printf("%s\n", buffer);
+  return buffer;
 };
 void builtin_exit(int status) {
   exit(1);
   return;
 }
 void builtin_echo(parsed_input *data) {
-  printf("%s\n", data->argv[data->argc - 1]);
   for (size_t i = 1; i < data->argc; ++i) {
-    if (data->has_operator) {
-      while (strcmp(data->argv[i], ">") != 0)
-        helper_write(data->argv[data->argc - 1], data->argv[i++], "w");
-
-      helper_write(data->argv[data->argc - 1], "\n", "a");
-      return;
-    }
-    printf("%s ", data->argv[i]);
+    if (data->has_operator)
+      helper_write(data->op.file_name, data->argv[i], "w+");
+    else
+      printf("%s ", data->argv[i]);
   }
 
-  printf("\n");
+  if (data->has_operator)
+    helper_write(data->op.file_name, "\n", "a+");
+  else
+    printf("\n");
 };
 
 bool builtin_type(char *arg) {

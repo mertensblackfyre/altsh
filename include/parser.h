@@ -29,7 +29,6 @@ typedef struct {
 typedef struct {
   char *file_name;
   char *op;
-
 } _operator;
 
 typedef struct {
@@ -37,7 +36,7 @@ typedef struct {
   char *cmd;
   int argc;
   bool has_operator;
- // _operator op;
+  _operator op;
 } parsed_input;
 
 parsed_input *parser_scanner(char *input);

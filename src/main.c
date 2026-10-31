@@ -31,7 +31,7 @@ int main(void) {
       continue;
     };
 
-   // utils_execute_program(input);
+    utils_execute_program(input);
 
     free(buffer);
     free(input);

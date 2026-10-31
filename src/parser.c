@@ -224,16 +224,29 @@ token parser_scan_token(int len, scanner *s) {
 parsed_input *parser_scanner(char *input) {
 
   parsed_input *p_input = malloc(sizeof(parsed_input) * strlen(input) + 1);
-  p_input->argv = malloc(sizeof(token) * strlen(input) + 1);
+
+  if (p_input == NULL) {
+    fprintf(stderr, "Memory allocation failed\n");
+    return NULL;
+  }
+
+  p_input->argv = calloc(strlen(input) + 1, sizeof(char *));
   p_input->argc = 0;
   p_input->has_operator = false;
+  p_input->op.file_name = calloc(strlen(input), sizeof(char));
+  p_input->op.op = calloc(3, sizeof(char));
 
-  if (p_input == NULL || p_input->argv == NULL) {
+  if (p_input->argv == NULL || p_input->op.file_name == NULL ||
+      p_input->op.op == NULL) {
     fprintf(stderr, "Memory allocation failed\n");
     return NULL;
   }
 
   if (strlen(input) == 0) {
+    free(p_input->argv);
+    free(p_input->op.file_name);
+    free(p_input->op.op);
+    free(p_input);
     return p_input;
   };
 
@@ -257,21 +270,28 @@ parsed_input *parser_scanner(char *input) {
       break;
 
     if (token.type == TOKEN_COMMAND) {
-      p_input->cmd = malloc((sizeof(char *)) * token.length);
+      p_input->cmd = calloc(strlen(token.literal) + 1, sizeof(char));
       if (p_input->cmd == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
       }
       strncpy(p_input->cmd, token.literal, token.length);
       p_input->cmd[token.length] = '\0';
-
     }
 
-    if (token.literal != NULL && strcmp(token.literal, ">") == 0) {
+    if (!p_input->has_operator && token.literal != NULL &&
+        token.type == TOKEN_ARGUMENTS && strchr(token.literal, '>') != NULL) {
       p_input->has_operator = true;
+      strncpy(p_input->op.op, token.literal, token.length);
+      continue;
     }
 
-    p_input->argv[i] = malloc((sizeof(char *)) * token.length);
+    if (p_input->has_operator) {
+      strncpy(p_input->op.file_name, token.literal, token.length);
+      continue;
+    }
+
+    p_input->argv[i] = calloc(strlen(token.literal) + 1, (sizeof(char)));
     if (p_input->argv[i] == NULL) {
       fprintf(stderr, "Memory allocation failed\n");
       return NULL;
@@ -280,9 +300,6 @@ parsed_input *parser_scanner(char *input) {
     strncpy(p_input->argv[i], token.literal, token.length);
     p_input->argc++;
   }
-
- // printf("%d\n",p_input->argc);
-
 
   return p_input;
 }
