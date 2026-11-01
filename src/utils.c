@@ -80,22 +80,32 @@ void utils_execute_program(char *input) {
   char buffer[BUFFER_SIZE];
 
   int fd[2];
+  int err_fd[2];
 
   int fd_pipe = pipe(fd);
+  int err_pipe = pipe(err_fd);
+
   pid_t cpid = fork();
 
   if (cpid == -1) {
     perror("fork()");
     return;
   };
+  
   if (cpid == 0) {
     dup2(fd[1], STDOUT_FILENO);
-    close(fd[1]);
+    dup2(err_fd[1], STDERR_FILENO);
     close(fd[0]);
+    close(fd[1]);
+    close(err_fd[1]);
+    close(err_fd[0]);
     execvp(cmd, p_input->argv);
-    printf("%s: command not found\n", cmd);
+    fprintf(stderr, "altsh: %s: command not found\n", cmd);
+    _exit(127);
   } else {
     close(fd[1]);
+    close(err_fd[1]);
+
     size_t p = 0;
     ssize_t _size;
     while ((_size = read(fd[0], buffer + p, BUFFER_SIZE - 1 - p)) != 0) {
@@ -107,13 +117,14 @@ void utils_execute_program(char *input) {
     close(fd[0]);
     int status;
     waitpid(cpid, &status, 0);
-
-    if (p_input->has_operator)
-      helper_write(p_input->op.file_name, buffer, "w+");
-    else
-      printf("%s\n", buffer);
   };
 
+  /*   if (p_input->has_operator)
+       helper_write(p_input->op.file_name, buffer, "w+");
+     else
+       printf("%s\n", buffer);
+
+       */
   free(p_input->op.op);
   free(p_input->op.file_name);
   free(p_input->argv);
