@@ -20,18 +20,16 @@ bool builtin_check(char *input) {
 
   size_t size = strlen(input);
   parsed_input *p_input = parser_scanner(input);
-  ;
 
   if (p_input == NULL) {
     return false;
   }
 
-  char *cmd = p_input->cmd;
-
-  if (cmd == NULL) {
+  if (p_input->cmd == NULL) {
     return false;
   }
 
+  char *cmd = p_input->cmd;
   if (strcmp("exit", cmd) == 0) {
     if (strlen(cmd) == 0) {
       builtin_exit(1);

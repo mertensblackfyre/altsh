@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "../include/utils.h"
@@ -11,9 +12,7 @@
 #define SIZE 1024
 
 int main(void) {
-
   char *input;
-
   do {
 
     char *buffer = malloc(sizeof(char *) * SIZE);
@@ -26,6 +25,9 @@ int main(void) {
     printf("$ ");
 
     input = utils_get_input();
+
+    if (strlen(input) == 0)
+      continue;
 
     if (builtin_check(input)) {
       continue;

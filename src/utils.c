@@ -65,10 +65,16 @@ void utils_execute_program(char *input) {
   size_t size = strlen(input);
   parsed_input *p_input = parser_scanner(input);
 
-  if (p_input == NULL || p_input->cmd == NULL) {
-    perror("parser_scanner()");
+  if (p_input == NULL) {
+    fprintf(stderr, "utils_execute_program(): memory allocation failed (p_input"
+                    "is NULL)\n");
     return;
   };
+  if (p_input->cmd == NULL) {
+    fprintf(stderr, "utils_execute_program(): memory allocation failed ("
+                    "p_input->cmd is NULL)\n");
+    return;
+  }
 
   char *cmd = p_input->cmd;
   char buffer[BUFFER_SIZE];

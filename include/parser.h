@@ -41,6 +41,7 @@ typedef struct {
 
 parsed_input *parser_scanner(char *input);
 token parser_scan_token(int len, scanner *s);
-
 token parser_create_token(char *str, scanner *s, token_type type);
+
+
 #endif
