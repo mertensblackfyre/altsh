@@ -12,5 +12,6 @@ void helper_skip_whitespace(scanner *s);
 bool helper_ispace(scanner *s);
 bool helper_check_quotes(char *str);
 void helper_write(char *file_name, char *content,char *mode);
+void helper_free_parsed_input(parsed_input *p);
 
 #endif

@@ -13,7 +13,7 @@ static token handle_double_qoutes(int len, scanner *s);
 static token handle_commands(int len, scanner *s, token_type type) {
 
   int index = 0;
-  char *str = malloc(len + 1);
+  char *str = calloc(len + 1, sizeof(char));
 
   if (s->current[-1] == '\'') {
     return handle_single_qoutes(len, s);
@@ -99,7 +99,7 @@ static token handle_commands(int len, scanner *s, token_type type) {
 static token handle_double_qoutes(int len, scanner *s) {
 
   int index = 0;
-  char *str = malloc(len + 1);
+  char *str = calloc(len + 1, sizeof(char));
   while (*s->current != '"' && *s->current != '\0') {
     char next = s->current[1];
     if (*s->current == '\\' && (next == '"' || next == '\\' || next == '$' ||
@@ -151,7 +151,7 @@ static token handle_double_qoutes(int len, scanner *s) {
 static token handle_single_qoutes(int len, scanner *s) {
 
   int index = 0;
-  char *str = malloc(len + 1);
+  char *str = calloc(len + 1, sizeof(char));
 
   while (*s->current != '\'' && *s->current != '\0') {
     if (*s->current == '"') {
@@ -191,9 +191,10 @@ token parser_create_token(char *str, scanner *s, token_type type) {
   if (strlen(str) == 0)
     return token;
 
-  token.literal = calloc(sizeof(char), strlen(str) + 1);
+  token.literal = calloc(strlen(str) + 1, sizeof(char));
   strncpy(token.literal, str, strlen(str));
   token.literal[strlen(str)] = '\0';
+  free(str);
   return token;
 };
 
@@ -223,7 +224,7 @@ token parser_scan_token(int len, scanner *s) {
 
 parsed_input *parser_scanner(char *input) {
 
-  parsed_input *p_input = calloc(sizeof(parsed_input), strlen(input) + 1);
+  parsed_input *p_input = calloc(strlen(input) + 1, sizeof(parsed_input));
 
   if (p_input == NULL) {
     fprintf(stderr,
@@ -240,55 +241,52 @@ parsed_input *parser_scanner(char *input) {
   if (p_input->argv == NULL || p_input->op.file_name == NULL ||
       p_input->op.op == NULL) {
 
-    fprintf(stderr, "parser_scanner(): memory allocation failed (p_input "
-                    "children are NULL)\n");
+    fprintf(stderr, "%s: memory allocation failed \n", __func__);
     return NULL;
   }
 
   if (strlen(input) == 0) {
-    free(p_input->argv);
-    free(p_input->op.file_name);
-    free(p_input->op.op);
-    free(p_input);
+    helper_free_parsed_input(p_input);
     return p_input;
   };
 
-  scanner *s = (scanner *)calloc(sizeof(scanner), 20);
-
+  scanner *s = (scanner *)calloc(20, sizeof(scanner));
   if (s == NULL) {
-    fprintf(stderr, "Memory allocation failed\n");
 
+    helper_free_parsed_input(p_input);
+    fprintf(stderr, "%s: memory allocation failed \n", __func__);
     return NULL;
   }
-
   s->start = input;
   s->current = input;
 
   int pos = -1;
-
   for (int i = 0; i < strlen(input); i++) {
+
     token token = parser_scan_token(strlen(input), s);
 
     if (token.type == TOKEN_EOF)
       break;
 
     if (token.type == TOKEN_COMMAND) {
+      p_input->cmd = calloc(strlen(token.literal) + 1, sizeof(char));
 
-      p_input->cmd = calloc(token.length + 1, sizeof(char));
       if (p_input->cmd == NULL) {
-        fprintf(stderr, "parser_scanner(): memory allocation failed "
-                        "(p_input->cmd is NULL)\n");
+
+        helper_free_parsed_input(p_input);
+        fprintf(stderr, "%s: memory allocation failed \n", __func__);
         return NULL;
       }
 
-      strncpy(p_input->cmd, token.literal, token.length);
-      p_input->cmd[token.length] = '\0';
+      strncpy(p_input->cmd, token.literal, strlen(token.literal));
+      p_input->cmd[strlen(token.literal)] = '\0';
     }
 
     if (!p_input->has_operator && token.literal != NULL &&
         token.type == TOKEN_ARGUMENTS && strchr(token.literal, '>') != NULL) {
       p_input->has_operator = true;
-      strncpy(p_input->op.op, token.literal, token.length);
+
+      strncpy(p_input->op.op, token.literal, strlen(token.literal));
       continue;
     }
 
@@ -299,15 +297,17 @@ parsed_input *parser_scanner(char *input) {
 
     p_input->argv[i] = calloc(strlen(token.literal) + 1, (sizeof(char)));
     if (p_input->argv[i] == NULL) {
-
-      fprintf(stderr, "parser_scanner(): memory allocation failed (p_input "
-                      "p_input->argv[i] is NULL)\n");
+      fprintf(stderr, "%s: memory allocation failed \n", __func__);
+      helper_free_parsed_input(p_input);
+      free(s);
       return NULL;
     }
 
-    strncpy(p_input->argv[i], token.literal, token.length);
+    strncpy(p_input->argv[i], token.literal, strlen(token.literal));
     p_input->argc++;
+    free(token.literal);
   }
 
+  free(s);
   return p_input;
 }

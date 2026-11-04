@@ -70,11 +70,12 @@ void utils_execute_program(char *input) {
                     "is NULL)\n");
     return;
   };
+
   if (p_input->cmd == NULL) {
     fprintf(stderr, "utils_execute_program(): memory allocation failed ("
                     "p_input->cmd is NULL)\n");
     return;
-  }
+  };
 
   char *cmd = p_input->cmd;
   char buffer[BUFFER_SIZE];
@@ -91,20 +92,16 @@ void utils_execute_program(char *input) {
     perror("fork()");
     return;
   };
-  
+
   if (cpid == 0) {
     dup2(fd[1], STDOUT_FILENO);
-    dup2(err_fd[1], STDERR_FILENO);
     close(fd[0]);
     close(fd[1]);
-    close(err_fd[1]);
-    close(err_fd[0]);
     execvp(cmd, p_input->argv);
     fprintf(stderr, "altsh: %s: command not found\n", cmd);
     _exit(127);
   } else {
     close(fd[1]);
-    close(err_fd[1]);
 
     size_t p = 0;
     ssize_t _size;
@@ -117,17 +114,14 @@ void utils_execute_program(char *input) {
     close(fd[0]);
     int status;
     waitpid(cpid, &status, 0);
+    printf("%s\n", buffer);
   };
 
   /*   if (p_input->has_operator)
        helper_write(p_input->op.file_name, buffer, "w+");
      else
-       printf("%s\n", buffer);
 
        */
-  free(p_input->op.op);
-  free(p_input->op.file_name);
-  free(p_input->argv);
-  free(p_input->cmd);
-  free(p_input);
+
+  helper_free_parsed_input(p_input);
 };

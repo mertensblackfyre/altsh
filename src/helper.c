@@ -1,6 +1,7 @@
 #include "../include/parser.h"
-#include <stdbool.h>
+
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 char *helper_strtrim(char *str) {
@@ -71,4 +72,12 @@ void helper_write(char *file_name, char *content, char *mode) {
 
   fprintf(fp, "%s", content);
   fclose(fp);
+}
+
+void helper_free_parsed_input(parsed_input *p) {
+  free(p->op.op);
+  free(p->op.file_name);
+  free(p->argv);
+  free(p->cmd);
+  free(p);
 }

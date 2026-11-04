@@ -33,19 +33,25 @@ bool builtin_check(char *input) {
   if (strcmp("exit", cmd) == 0) {
     if (strlen(cmd) == 0) {
       builtin_exit(1);
-      free(p_input);
+      helper_free_parsed_input(p_input);
+      return true;
+    }
+
+    if (p_input->argv[1] == NULL) {
+      builtin_exit(1);
+      helper_free_parsed_input(p_input);
       return true;
     }
 
     int n = atoi((char *)p_input->argv[1]);
     builtin_exit(n);
-    free(p_input);
+    helper_free_parsed_input(p_input);
     return true;
   };
 
   if (strcmp("echo", cmd) == 0) {
     builtin_echo(p_input);
-    free(p_input);
+    helper_free_parsed_input(p_input);
     return true;
   };
 
@@ -56,7 +62,7 @@ bool builtin_check(char *input) {
     else
       printf("%s\n", buffer);
 
-    free(p_input);
+    helper_free_parsed_input(p_input);
     free(buffer);
     return true;
   }
@@ -73,10 +79,11 @@ bool builtin_check(char *input) {
     else
       utils_get_path(p_input);
 
-    free(p_input);
+    helper_free_parsed_input(p_input);
     return true;
   };
 
+  helper_free_parsed_input(p_input);
   return false;
 };
 
