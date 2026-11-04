@@ -19,6 +19,7 @@ int main(void) {
 
     if (getcwd(buffer, SIZE) == NULL) {
       fprintf(stderr, "error: Could not get path");
+      free(buffer);
       exit(EXIT_FAILURE);
     };
 

@@ -114,14 +114,11 @@ void utils_execute_program(char *input) {
     close(fd[0]);
     int status;
     waitpid(cpid, &status, 0);
-    printf("%s\n", buffer);
+
+    if (p_input->has_operator)
+      helper_write(p_input->op.file_name, buffer, "w+");
+    else
+      printf("%s\n", buffer);
   };
-
-  /*   if (p_input->has_operator)
-       helper_write(p_input->op.file_name, buffer, "w+");
-     else
-
-       */
-
   helper_free_parsed_input(p_input);
 };
