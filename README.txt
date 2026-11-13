@@ -2,10 +2,16 @@ altsh
 ============
 altsh is a lightweight command-line interface
 
+Features
+
+* redirection of stdout & stderr
+* stores command history
+
 Dependencies
 -----------
 * gcc
 * cmake
+* readline
 
 Installation
 -----------
