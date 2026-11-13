@@ -5,7 +5,6 @@
 int main() {
 
   run_redirect_tests();
- // run_builtin_tests();
   run_parser_tests();
   printf("All tests passed!\n");
   return 0;
