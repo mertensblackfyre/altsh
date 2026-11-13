@@ -7,6 +7,9 @@ set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -g3 -fsanitize=address -g")
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(Readline REQUIRED IMPORTED_TARGET readline)
+
 enable_testing()
 
 add_subdirectory(src)

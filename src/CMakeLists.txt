@@ -7,4 +7,5 @@ add_library(altsh_lib
 
 add_executable(altsh main.c)
 
-target_link_libraries(altsh altsh_lib)
+target_link_libraries(altsh PRIVATE altsh_lib)
+target_link_libraries(altsh PRIVATE PkgConfig::Readline)

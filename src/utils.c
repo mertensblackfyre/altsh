@@ -1,5 +1,3 @@
-#include "../include/utils.h"
-#include "../include/helper.h"
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -10,6 +8,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "../include/utils.h"
+#include "../include/helper.h"
 #define BUFFER_SIZE 10240
 
 char *utils_get_input() {
@@ -138,7 +138,7 @@ void utils_execute_program(char *input) {
           buffer[p] = '\0';
         } else if (_size == 0 || (pfd[0].revents & (POLLHUP | POLLERR))) {
           close(fd[0]);
-          pfd[0].fd = -1; // Deactivate from poll
+          pfd[0].fd = -1;
           active_fds--;
         }
       }
@@ -167,16 +167,18 @@ void utils_execute_program(char *input) {
 
     helper_write(p_input->op.file_name, buffer, p_input->op.op);
   } else {
-    printf("%s\n", buffer);
+    printf("%s", buffer);
   }
   if (p_input->has_operator && (strcmp(p_input->op.op, "2>") == 0 ||
                                 strcmp(p_input->op.op, "2>>") == 0)) {
     helper_write(p_input->op.file_name, err_buffer, p_input->op.op);
   } else {
-    printf("%s\n", err_buffer);
+    printf("%s", err_buffer);
   }
 
   helper_free_parsed_input(p_input);
+  memset(buffer, 0, BUFFER_SIZE);
+  memset(err_buffer, 0, BUFFER_SIZE);
 
   return;
 };
