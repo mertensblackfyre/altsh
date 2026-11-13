@@ -1,14 +1,14 @@
+#include "../include/utils.h"
+#include "../include/helper.h"
 #include <fcntl.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/poll.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
-#include "../include/helper.h"
-#include "../include/utils.h"
 
 #define BUFFER_SIZE 10240
 
@@ -79,12 +79,18 @@ void utils_execute_program(char *input) {
 
   char *cmd = p_input->cmd;
   char buffer[BUFFER_SIZE];
+  char err_buffer[BUFFER_SIZE];
 
   int fd[2];
   int err_fd[2];
 
   int fd_pipe = pipe(fd);
   int err_pipe = pipe(err_fd);
+
+  if (fd_pipe == -1 || err_pipe == -1) {
+    perror("pipe()");
+    return;
+  }
 
   pid_t cpid = fork();
 
@@ -95,6 +101,9 @@ void utils_execute_program(char *input) {
 
   if (cpid == 0) {
     dup2(fd[1], STDOUT_FILENO);
+    dup2(err_fd[1], STDERR_FILENO);
+    close(err_fd[1]);
+    close(err_fd[0]);
     close(fd[0]);
     close(fd[1]);
     execvp(cmd, p_input->argv);
@@ -102,23 +111,72 @@ void utils_execute_program(char *input) {
     _exit(127);
   } else {
     close(fd[1]);
+    close(err_fd[1]);
+
+    struct pollfd pfd[2];
+    pfd[0].fd = fd[0];
+    pfd[0].events = POLLIN;
+
+    pfd[1].fd = err_fd[0];
+    pfd[1].events = POLLIN;
 
     size_t p = 0;
-    ssize_t _size;
-    while ((_size = read(fd[0], buffer + p, BUFFER_SIZE - 1 - p)) != 0) {
-      p += _size;
-      if (p >= BUFFER_SIZE - 1)
+    size_t err_p = 0;
+    int active_fds = 2;
+
+    while (active_fds > 0) {
+      int ret = poll(pfd, 2, -1);
+      if (ret == -1) {
+        perror("poll()");
         break;
+      }
+
+      if (pfd[0].fd != -1 && (pfd[0].revents & (POLLIN | POLLHUP | POLLERR))) {
+        ssize_t _size = read(fd[0], buffer + p, BUFFER_SIZE - 1 - p);
+        if (_size > 0) {
+          p += _size;
+          buffer[p] = '\0';
+        } else if (_size == 0 || (pfd[0].revents & (POLLHUP | POLLERR))) {
+          close(fd[0]);
+          pfd[0].fd = -1; // Deactivate from poll
+          active_fds--;
+        }
+      }
+
+      if (pfd[1].fd != -1 && (pfd[1].revents & (POLLIN | POLLHUP | POLLERR))) {
+        ssize_t _size =
+            read(err_fd[0], err_buffer + err_p, BUFFER_SIZE - 1 - err_p);
+        if (_size > 0) {
+          err_p += _size;
+          err_buffer[err_p] = '\0';
+        } else if (_size == 0 || (pfd[1].revents & (POLLHUP | POLLERR))) {
+          close(err_fd[0]);
+          pfd[1].fd = -1;
+          active_fds--;
+        }
+      }
     }
-    buffer[p] = '\0';
-    close(fd[0]);
+
     int status;
     waitpid(cpid, &status, 0);
+  }
 
-    if (p_input->has_operator)
-      helper_write(p_input->op.file_name, buffer, p_input->op.op);
-    else
-      printf("%s\n", buffer);
-  };
+  if (p_input->has_operator && (strcmp(p_input->op.op, ">") == 0 ||
+                                strcmp(p_input->op.op, "1>") == 0) ||
+      strcmp(p_input->op.op, "1>>") == 0 || strcmp(p_input->op.op, ">>") == 0) {
+
+    helper_write(p_input->op.file_name, buffer, p_input->op.op);
+  } else {
+    printf("%s\n", buffer);
+  }
+  if (p_input->has_operator && (strcmp(p_input->op.op, "2>") == 0 ||
+                                strcmp(p_input->op.op, "2>>") == 0)) {
+    helper_write(p_input->op.file_name, err_buffer, p_input->op.op);
+  } else {
+    printf("%s\n", err_buffer);
+  }
+
   helper_free_parsed_input(p_input);
+
+  return;
 };

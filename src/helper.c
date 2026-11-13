@@ -68,17 +68,19 @@ int helper_count_substrings(char *s) {
 
 void helper_write(char *file_name, char *content, char *mode) {
 
-  char *m = calloc(3, sizeof(char));
+  char *m = calloc(4, sizeof(char));
 
   if (m == NULL) {
     fprintf(stderr, "altsh: error allocating \n");
     return;
   }
 
-  if (strcmp(mode, ">") == 0)
+  if (strcmp(mode, ">") == 0 || strcmp(mode, "1>") == 0 ||
+      strcmp(mode, "2>") == 0)
     strncpy(m, "w+", 2);
 
-  if (strcmp(mode, ">>") == 0)
+  if (strcmp(mode, ">>") == 0 || strcmp(mode, "1>>") == 0 ||
+      strcmp(mode, "2>>") == 0)
     strncpy(m, "a+", 2);
 
   if (strlen(m) == 0) {
@@ -87,6 +89,7 @@ void helper_write(char *file_name, char *content, char *mode) {
     return;
   }
 
+  m[strlen(m) + 1] = '\0';
   FILE *fp = fopen(file_name, m);
 
   if (fp == NULL) {

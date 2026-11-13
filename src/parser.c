@@ -244,7 +244,7 @@ parsed_input *parser_scanner(char *input) {
   p_input->argc = 0;
   p_input->has_operator = false;
   p_input->op.file_name = calloc(strlen(input), sizeof(char));
-  p_input->op.op = calloc(3, sizeof(char));
+  p_input->op.op = calloc(4, sizeof(char));
 
   if (p_input->argv == NULL || p_input->op.file_name == NULL ||
       p_input->op.op == NULL) {
