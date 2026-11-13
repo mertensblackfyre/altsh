@@ -90,7 +90,10 @@ static token handle_commands(int len, scanner *s, token_type type) {
   }
 
   s->pos++;
-  s->current++;
+
+  if (*s->current != '\0') {
+    s->current++;
+  }
   str[index++] = '\0';
   helper_skip_whitespace(s);
   return parser_create_token(str, s, type);
@@ -141,9 +144,12 @@ static token handle_double_qoutes(int len, scanner *s) {
   }
 
   s->pos++;
-  s->current++;
+  if (*s->current != '\0') {
+    s->current++;
+  }
 
   str[index++] = '\0';
+
   helper_skip_whitespace(s);
   return parser_create_token(str, s, TOKEN_DOUBLE_QUOTE);
 }
@@ -174,8 +180,10 @@ static token handle_single_qoutes(int len, scanner *s) {
   }
 
   s->pos++;
-  s->current++;
 
+  if (*s->current != '\0') {
+    s->current++;
+  }
   str[index++] = '\0';
   helper_skip_whitespace(s);
   return parser_create_token(str, s, TOKEN_SINGLE_QUOTE);

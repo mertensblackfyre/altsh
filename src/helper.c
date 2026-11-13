@@ -21,6 +21,9 @@ char *helper_strtrim(char *str) {
 }
 
 void helper_skip_whitespace(scanner *s) {
+  if (s == NULL || s->current == NULL)
+    return;
+
   for (;;) {
     char c = *s->current;
     switch (c) {
@@ -34,6 +37,7 @@ void helper_skip_whitespace(scanner *s) {
     }
   }
 }
+
 bool helper_ispace(scanner *s) {
   char c = *s->current;
   return c == ' ' || c == '\t' || c == '\r' || c == '\0';
@@ -63,7 +67,27 @@ int helper_count_substrings(char *s) {
 };
 
 void helper_write(char *file_name, char *content, char *mode) {
-  FILE *fp = fopen(file_name, mode);
+
+  char *m = calloc(3, sizeof(char));
+
+  if (m == NULL) {
+    fprintf(stderr, "altsh: error allocating \n");
+    return;
+  }
+
+  if (strcmp(mode, ">") == 0)
+    strncpy(m, "w+", 2);
+
+  if (strcmp(mode, ">>") == 0)
+    strncpy(m, "a+", 2);
+
+  if (strlen(m) == 0) {
+    fprintf(stderr, "altsh: error redirecting \n");
+    free(m);
+    return;
+  }
+
+  FILE *fp = fopen(file_name, m);
 
   if (fp == NULL) {
     fprintf(stderr, "altsh: %s: No such file or directory\n", file_name);
@@ -72,6 +96,7 @@ void helper_write(char *file_name, char *content, char *mode) {
 
   fprintf(fp, "%s", content);
   fclose(fp);
+  free(m);
 }
 
 void helper_free_parsed_input(parsed_input *p) {

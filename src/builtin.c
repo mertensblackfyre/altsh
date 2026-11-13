@@ -140,13 +140,13 @@ void builtin_exit(int status) {
 void builtin_echo(parsed_input *data) {
   for (size_t i = 1; i < data->argc; ++i) {
     if (data->has_operator)
-      helper_write(data->op.file_name, data->argv[i], "w+");
+      helper_write(data->op.file_name, data->argv[i], data->op.op);
     else
       printf("%s ", data->argv[i]);
   }
 
   if (data->has_operator)
-    helper_write(data->op.file_name, "\n", "a+");
+    helper_write(data->op.file_name, "\n", ">>");
   else
     printf("\n");
 };

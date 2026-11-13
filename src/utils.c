@@ -116,7 +116,7 @@ void utils_execute_program(char *input) {
     waitpid(cpid, &status, 0);
 
     if (p_input->has_operator)
-      helper_write(p_input->op.file_name, buffer, "w+");
+      helper_write(p_input->op.file_name, buffer, p_input->op.op);
     else
       printf("%s\n", buffer);
   };
